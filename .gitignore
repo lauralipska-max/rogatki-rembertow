@@ -1,0 +1,29 @@
+# Sekrety
+.streamlit/secrets.toml
+.env
+.env.*
+*.pem
+*.key
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# Dane pobierane z API
+data/*.json
+data/*.csv
+!data/stacje_plk.json
+
+# Logi
+*.log
+
+# LOKALNE / NIEUŻYWANE W CHMURZE
+streamlit_app_backup_before_redesign.py
+streamlit_app_before_html_fix.py
+build_timeline.py
+predict_barriers.py
+refresh.sh

@@ -1,0 +1,5 @@
+{
+  "close_before_seconds": 210,
+  "open_after_seconds": 60,
+  "minimum_opening_seconds": 60
+}
