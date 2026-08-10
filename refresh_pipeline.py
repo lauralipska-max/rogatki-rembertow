@@ -30,9 +30,6 @@ def run(name):
             or f"Błąd skryptu {name}"
         )
 
-    if result.stdout:
-        print(result.stdout)
-
 
 def live_is_fresh():
     if not LIVE_PATH.exists():
@@ -60,14 +57,9 @@ def live_is_fresh():
         return False
 
 
-# Rozkład: skrypt sam pilnuje, żeby pobierać go tylko raz dziennie.
 run("refresh_schedule.py")
 
-# Dane live: maksymalnie jedno pobranie na 2 minuty.
-if live_is_fresh():
-    print("✓ Dane live są świeże — nie odpytuję ponownie API.")
-else:
+if not live_is_fresh():
     run("inspect_live.py")
 
-# Przeliczenie osi przejazdów nie wymaga nowego requestu API.
 run("build_live_timeline.py")
