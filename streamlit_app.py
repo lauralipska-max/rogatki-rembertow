@@ -16,6 +16,7 @@ CONFIG_PATH = PROJECT / "config.json"
 STYLES_PATH = PROJECT / "styles.css"
 
 WARSAW = ZoneInfo("Europe/Warsaw")
+DATA_MAX_AGE = timedelta(seconds=90)
 
 st.set_page_config(
     page_title="Rogaty Rembertów",
@@ -47,7 +48,7 @@ def load_config():
         return default
 
 
-@st.cache_data(ttl=120, show_spinner=False)
+@st.cache_data(ttl=75, show_spinner=False)
 def refresh_data():
     if not os.environ.get("PLK_API_KEY") and not st.secrets.get("PLK_API_KEY", ""):
         raise RuntimeError(
@@ -157,6 +158,14 @@ def get_data_timestamp():
     except (OSError, json.JSONDecodeError, ValueError):
         return None
 
+
+
+def data_is_stale():
+    timestamp = get_data_timestamp()
+    if timestamp is None:
+        return True
+    now = datetime.now(WARSAW).replace(tzinfo=None)
+    return (now - timestamp) >= DATA_MAX_AGE
 
 def format_duration(duration):
     total_seconds = max(0, int(duration.total_seconds()))
@@ -376,6 +385,36 @@ if refresh_clicked:
     except Exception as error:
         print(f"Błąd odświeżania: {error}", file=sys.stderr)
         st.error("Nie udało się odświeżyć danych. Spróbuj ponownie za chwilę.")
+
+
+def data_needs_refresh():
+    timestamp = get_data_timestamp()
+
+    if timestamp is None:
+        return True
+
+    now_local = datetime.now(WARSAW).replace(tzinfo=None)
+    age = now_local - timestamp
+
+    return age >= DATA_MAX_AGE
+
+
+@st.fragment(run_every=15, parallel=True)
+def automatic_data_refresh():
+    if not data_needs_refresh():
+        return
+
+    try:
+        refresh_data()
+        st.rerun()
+    except Exception as error:
+        print(
+            f"Automatyczne odświeżanie nie powiodło się: {error}",
+            file=sys.stderr,
+        )
+
+
+automatic_data_refresh()
 
 events = load_events()
 

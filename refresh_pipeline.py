@@ -10,7 +10,7 @@ PROJECT = Path(__file__).resolve().parent
 LIVE_PATH = PROJECT / "data" / "operations_live.json"
 
 WARSAW = ZoneInfo("Europe/Warsaw")
-MAX_LIVE_AGE = timedelta(minutes=2)
+MAX_LIVE_AGE = timedelta(seconds=90)
 
 
 def run(name):
@@ -60,6 +60,6 @@ def live_is_fresh():
 run("refresh_schedule.py")
 
 if not live_is_fresh():
-    run("inspect_live.py")
+    run("fetch_live.py")
 
 run("build_live_timeline.py")

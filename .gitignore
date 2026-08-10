@@ -28,3 +28,6 @@ build_timeline.py
 predict_barriers.py
 refresh.sh
 refresh_pipeline_before_cleanup.py
+streamlit_app_before_autorefresh.py
+inspect_live_before_speedup.py
+test_shortened.py
