@@ -414,13 +414,19 @@ def automatic_data_refresh():
         )
 
 
-automatic_data_refresh()
-
 events = load_events()
 
 if not events:
-    st.warning("Brak danych do wyświetlenia. Kliknij „Odśwież dane”.")
-    st.stop()
+    try:
+        with st.spinner("Pobieram aktualne dane o ruchu pociągów..."):
+            refresh_data()
+        st.rerun()
+    except Exception as error:
+        print(f"Błąd pierwszego pobrania danych: {error}", file=sys.stderr)
+        st.warning("Aktualne dane są chwilowo niedostępne. Spróbuj ponownie za chwilę.")
+        st.stop()
+
+automatic_data_refresh()
 
 closures = build_closures(events, config)
 now = datetime.now(WARSAW).replace(tzinfo=None)
