@@ -7,6 +7,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import streamlit as st
+from supabase import create_client
 
 
 PROJECT = Path(__file__).resolve().parent
@@ -166,6 +167,57 @@ def data_is_stale():
         return True
     now = datetime.now(WARSAW).replace(tzinfo=None)
     return (now - timestamp) >= DATA_MAX_AGE
+
+
+def save_model_history(status_class, next_closure, timestamp, upcoming_events):
+    try:
+        supabase_url = st.secrets.get("SUPABASE_URL", "")
+        supabase_key = st.secrets.get("SUPABASE_SECRET_KEY", "")
+
+        if not supabase_url or not supabase_key:
+            return
+
+        client = create_client(supabase_url, supabase_key)
+
+        next_close = None
+        next_open = None
+
+        if next_closure:
+            next_close = next_closure["from"].replace(
+                tzinfo=WARSAW
+            ).isoformat()
+            next_open = next_closure["until"].replace(
+                tzinfo=WARSAW
+            ).isoformat()
+
+        trains = [
+            {
+                "time": event["passage_time"].isoformat(),
+                "carrier": event.get("carrier"),
+                "category": event.get("category"),
+                "number": event.get("number"),
+                "direction": event.get("direction"),
+            }
+            for event in upcoming_events[:10]
+        ]
+
+        client.table("model_history").upsert({
+            "model_status": status_class.upper(),
+            "next_close": next_close,
+            "next_open": next_open,
+            "source_generated_at": (
+                timestamp.replace(tzinfo=WARSAW).isoformat()
+                if timestamp
+                else None
+            ),
+            "trains": trains,
+        }, on_conflict="source_generated_at").execute()
+
+    except Exception as error:
+        print(
+            f"Nie udało się zapisać historii modelu: {error}",
+            file=sys.stderr,
+        )
 
 def format_duration(duration):
     total_seconds = max(0, int(duration.total_seconds()))
@@ -537,6 +589,8 @@ upcoming_events = [
     event for event in events
     if event["passage_time"] >= now - timedelta(minutes=1)
 ][:10]
+
+save_model_history(status_class, next_closure, timestamp, upcoming_events)
 
 render_trains(upcoming_events)
 
