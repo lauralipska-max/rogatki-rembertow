@@ -36,7 +36,7 @@ station_ids = ",".join(
 params = {
     "stations": station_ids,
     "carriersInclude": "IC,KM,SKM",
-    "fullRoutes": "true",
+    "fullRoutes": "false",
     "withPlanned": "true",
     "page": 1,
     "pageSize": 10000,

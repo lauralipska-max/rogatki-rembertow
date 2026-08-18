@@ -187,6 +187,9 @@ corridor_names = {
     "Łuków",
     "Biała Podlaska",
     "Terespol",
+    "Zielonka",
+    "Wołomin",
+    "Tłuszcz",
 }
 
 corridor_ids = {
